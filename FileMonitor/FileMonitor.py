@@ -8,6 +8,7 @@ from functools import partial
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+import collections
 
 
 def log(s):
@@ -32,11 +33,11 @@ class MyFileSystemEventHandler(FileSystemEventHandler):
 
     @staticmethod
     def dic_filter(src_path, dic):
-        return filter(lambda x: x.match(src_path) is not None, dic)
+        return [x for x in dic if x.match(src_path) is not None]
 
     @staticmethod
     def dic_run(filter_list, dic, src_path, des_path=None):
-        find_list = map(lambda find: dic[find], filter_list)
+        find_list = [dic[find] for find in filter_list]
         for func_list in find_list:
             for func in func_list:
                 try:
@@ -95,7 +96,7 @@ class MyFileSystemEventHandler(FileSystemEventHandler):
             temp_dict[re_path] = [fn]
 
     def register_callback(self, fn):
-        if callable(fn):
+        if isinstance(fn, collections.Callable):
             re_path = getattr(fn, '__re_path__', None)
             method = getattr(fn, '__method__', None)
             if re_path and method:
@@ -145,7 +146,7 @@ def add_routers(app, module_name):
         if attr.startswith('_'):
             continue
         fn = getattr(mod, attr)
-        if callable(fn):
+        if isinstance(fn, collections.Callable):
             re_path = getattr(fn, '__re_path__', None)
             method = getattr(fn, '__method__', None)
             if re_path and method:
